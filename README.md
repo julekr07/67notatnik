@@ -1,5 +1,5 @@
 # 67notatnik
 
-dzień dobry panie piotrze
-witamy w grze 😈😈😈
+Dzień dobry panie Piotrze!!
+Witamy w grze 😈😈😈
 
