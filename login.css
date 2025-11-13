@@ -309,7 +309,21 @@
     color: var(--accent);
     font-size: 1.4em;
   }
-  
+    /* =========================================================
+   ============== LOGIN SEKCJA – POLE WYBORU =============
+   ========================================================= */
+.login-section select {
+  width: 100%;
+  background-color: #111;
+  border: 10px solid var(--accent);
+  color: var(--text-light);
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Roboto, sans-serif;
+}
+
   /* =========================================================
      ============== RESPONSYWNOŚĆ =============================
      ========================================================= */
@@ -336,17 +350,6 @@
     .login-header {
       flex-direction: column;
       gap: 10px;
-    }
-    .login-section select {
-      width: 100%;
-      background-color: #111;
-      border: 1px solid var(--accent);
-      color: var(--text-light);
-      padding: 10px;
-      border-radius: 5px;
-      margin-bottom: 10px;
-      box-sizing: border-box;
-    }
-    
+    }   
   }
   
