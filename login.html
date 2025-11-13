@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel logowania</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Układ: górny pasek + sekcja logowania -->
+  <div class="container variant-2">
+
+    <!-- Pasek górny -->
+    <div class="topbar">
+      <h1>Panel logowania</h1>
+      <button id="logoutBtn">Wyloguj się</button>
+    </div>
+
+    <!-- Główna sekcja logowania -->
+    <div class="main variant-1">
+      <div class="section variant-2" style="max-width: 400px; margin: 60px auto; text-align: center;">
+        <h2>Zaloguj się</h2>
+
+        <!-- TODO: dodaj tutaj ścieżkę do folderu API -->
+        <!-- np. action="php/api/login.php" -->
+        <form id="loginForm" method="POST" action="">
+          <input type="text" name="username" placeholder="Login" required />
+          <input type="password" name="password" placeholder="Hasło" required />
+          <input type="submit" value="Zaloguj" />
+        </form>
+
+        <p style="margin-top: 15px; color: #ccc; font-size: 14px;">
+          Wpisz swoje dane, aby uzyskać dostęp do projektu.
+        </p>
+      </div>
+    </div>
+
+  </div>
+<!-- 
+  <script>
+    // =============================
+    // 1️⃣ WYŚWIETLANIE LOGIN JAKO PIERWSZEGO
+    // =============================
+    // Ten kod sprawia, że jeśli użytkownik nie jest zalogowany,
+    // zostaje na stronie login.html — nawet po wpisaniu innego adresu.
+    // (po zalogowaniu możesz ustawić localStorage.loggedIn = "true")
+
+    if (!localStorage.getItem("loggedIn")) {
+      // Użytkownik niezalogowany — zostaje tutaj
+      console.log("Użytkownik niezalogowany — pozostaje na stronie logowania.");
+    } else {
+      // Zalogowany — przenieś go do głównego panelu
+      window.location.href = "index.html";
+    }
+
+    // =============================
+    // 2️⃣ OBSŁUGA LOGOWANIA
+    // =============================
+    document.getElementById("loginForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const username = e.target.username.value;
+      const password = e.target.password.value;
+
+      // TODO: dodaj zapytanie do API (login.php)
+      // fetch("php/api/login.php", { method: "POST", body: new FormData(e.target) })
+
+      // Tymczasowo — tylko symulacja logowania:
+      if (username && password) {
+        localStorage.setItem("loggedIn", "true");
+        alert("Zalogowano pomyślnie!");
+        window.location.href = "index.html";
+      } else {
+        alert("Nieprawidłowe dane logowania!");
+      }
+    });
+
+    // =============================
+    // 3️⃣ WYLOGOWYWANIE
+    // =============================
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      // TODO: połącz z logout API (np. php/api/logout.php)
+      localStorage.removeItem("loggedIn");
+      alert("Wylogowano pomyślnie!");
+      window.location.href = "login.html";
+    });
+  </script>
+--> 
+</body>
+</html>
