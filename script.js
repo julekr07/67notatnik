@@ -7,32 +7,39 @@ const setNameBtn = document.getElementById("setNameBtn");
 const usersList = document.getElementById("usersList");
 const connectedStatus = document.getElementById("connectedStatus");
 
-let username = "Anonim";
-let users = [username]; // lokalna lista użytkowników
+// ======= ZMIENNE GLOBALNE =======
+let username = "Anonim2706";
+let users = [];  // każdy użytkownik będzie obiektem { id, name }
 
 // ======= INICJALIZACJA =======
-connectedStatus.textContent = "tryb lokalny (offline)";
 connectedStatus.style.color = "#ffa64d";
-
 renderUsers();
 
-// ======= ZMIANA NAZWY =======
+
+
+
+
+// ======= DODANIE UŻYTKOWNIKA =======
 setNameBtn.addEventListener("click", () => {
-  const newName = nameInput.value.trim();
-  if (!newName) return alert("Podaj nazwę użytkownika!");
+    const name = nameInput.value.trim();
+    if (name === "") return;
 
-  username = newName;
+    const newUser = {
+        name: name
+    };
 
-  // Zastąp w liście
-  users[0] = username;
-  renderUsers();
+    username = name;
+    users.push(newUser);
 
-  nameInput.value = "";
+    renderUsers();
+    nameInput.value = "";
 });
+
 
 // ======= WYSYŁANIE WIADOMOŚCI =======
 form.addEventListener("submit", (e) => {
   e.preventDefault();
+
   const text = input.value.trim();
   if (!text) return;
 
@@ -46,11 +53,11 @@ form.addEventListener("submit", (e) => {
   input.value = "";
 });
 
-// ======= FUNKCJE POMOCNICZE =======
+
+// ======= WIADOMOŚCI =======
 function appendMessage(msg, isOwn = false) {
   const div = document.createElement("div");
-  div.classList.add("message");
-  div.classList.add(isOwn ? "user" : "other");
+  div.classList.add("message", isOwn ? "user" : "other");
 
   const header = document.createElement("div");
   header.innerHTML = `<strong>${msg.user}</strong> <small style="opacity:0.7;">${msg.time}</small>`;
@@ -63,15 +70,24 @@ function appendMessage(msg, isOwn = false) {
   div.appendChild(text);
   messagesDiv.appendChild(div);
 
-  // przewiń na dół
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
 }
 
+
+// ======= RENDEROWANIE UŻYTKOWNIKÓW =======
 function renderUsers() {
   usersList.innerHTML = "";
+
   users.forEach((user) => {
     const li = document.createElement("li");
-    li.textContent = user;
+    li.classList.add("list-group-item");
+
+    // Ikony + ID + nazwa
+    li.innerHTML = `
+      <span style="color:#32CD32; font-size: 14px;">●</span> 
+      <strong>${user.name}</strong>
+    `;
+
     usersList.appendChild(li);
   });
 }
