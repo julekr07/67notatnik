@@ -70,21 +70,45 @@ function parsePath(): array {
 
 // Wymaga tokena dla wszystkich endpointów poza /auth
 function requireAuth($jwt_secret) {
+    // 1. standardowo w $_SERVER
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
-    if (!$authHeader || stripos($authHeader, 'Bearer ') !== 0) {
-        jsonResponse(["error" => "Missing token"], 401);
+    // 2. czasem w REDIRECT_HTTP_AUTHORIZATION
+    if (!$authHeader && !empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
     }
-    $token = trim(substr($authHeader, 7));
-    try {
-        $decoded = JWT::decode($token, new Key($jwt_secret, 'HS256'));
-        if (!isset($decoded->userId) || !isset($decoded->isTeacher)) {
-            jsonResponse(["error" => "Invalid token payload"], 401);
+    // 3. getallheaders fallback
+    if (!$authHeader && function_exists('getallheaders')) {
+        $hdrs = getallheaders();
+        foreach ($hdrs as $k => $v) {
+            if (strtolower($k) === 'authorization') { $authHeader = $v; break; }
         }
+    }
+    // 4. apache_request_headers fallback
+    if (!$authHeader && function_exists('apache_request_headers')) {
+        $hdrs = apache_request_headers();
+        foreach ($hdrs as $k => $v) {
+            if (strtolower($k) === 'authorization') { $authHeader = $v; break; }
+        }
+    }
+
+    if (!$authHeader) jsonResponse(["error" => "Missing token"], 401);
+
+    if (stripos($authHeader, 'bearer ') === 0) {
+        $token = trim(substr($authHeader, 7));
+    } else {
+        $token = trim($authHeader);
+    }
+    if (!$token) jsonResponse(["error" => "Missing token"], 401);
+
+    try {
+        $decoded = Firebase\JWT\JWT::decode($token, new Firebase\JWT\Key($jwt_secret, 'HS256'));
+        if (!isset($decoded->userId) || !isset($decoded->isTeacher)) jsonResponse(["error" => "Invalid token payload"], 401);
         return $decoded;
     } catch (Exception $e) {
         jsonResponse(["error" => "Invalid token"], 401);
     }
 }
+
 
 // ——— Routing ———
 $method   = $_SERVER['REQUEST_METHOD'] ?? 'GET';
