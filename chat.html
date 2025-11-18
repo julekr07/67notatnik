@@ -6,7 +6,7 @@
   <title>Czat grupowy</title>
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-   <link rel="stylesheet" href="styl.css">
+  <link rel="stylesheet" href="styl.css">
 </head>
 <body>
 
@@ -16,83 +16,55 @@
     <!-- LEWA KOLUMNA -->
     <div class="col-12 col-md-3">
       <div class="p-3 bg-secondary border border-warning rounded">
-
         <h3 class="mb-3">Linki</h3>
-
         <ul class="list-unstyled">
-          <li class="mb-2">
-            <a href="login.html" class="text-warning text-decoration-none">Wyloguj się</a>
-          </li>
-          <li class="mb-2">
-            <a href="tablica.html" class="text-warning text-decoration-none">Tablica</a>
-          </li>
-          <li>
-            <a href="notatki.html" class="text-warning text-decoration-none">Notatki</a>
-          </li>
+          <li class="mb-2"><a href="login.html" class="text-warning text-decoration-none">Wyloguj się</a></li>
+          <li class="mb-2"><a href="tablica.html" class="text-warning text-decoration-none">Tablica</a></li>
+          <li><a href="notatki.html" class="text-warning text-decoration-none">Notatki</a></li>
         </ul>
-
       </div>
     </div>
 
     <!-- ŚRODEK -->
     <div class="col-12 col-md-6">
       <div class="p-3 bg-secondary border border-warning rounded d-flex flex-column" style="height:100%;">
-
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h3 class="mb-0">Czat grupowy</h3>
           <span id="connectedStatus" class="text-muted small">tryb lokalny</span>
         </div>
 
         <!-- CHAT BOX -->
-        <div id="messages"
-             class="flex-grow-1 overflow-auto p-2 mb-3 bg-dark border border-warning rounded">
-        </div>
+        <div id="messages" class="flex-grow-1 overflow-auto p-2 mb-3 bg-dark border border-warning rounded"></div>
 
         <!-- FORMULARZ -->
         <form id="form" class="d-flex gap-2">
-          <input id="input" type="text" autocomplete="off"
-                 class="form-control"
-                 placeholder="Napisz wiadomość...">
-
-          <button type="submit" class="btn btn-warning fw-bold text-dark">
-            Wyślij
-          </button>
+          <input id="input" type="text" autocomplete="off" class="form-control" placeholder="Napisz wiadomość...">
+          <button type="submit" class="btn btn-warning fw-bold text-dark">Wyślij</button>
         </form>
-
       </div>
     </div>
 
     <!-- PRAWA KOLUMNA -->
     <div class="col-12 col-md-3">
       <div class="p-3 bg-secondary border border-warning rounded">
-
         <h3 class="mb-3">Użytkownicy</h3>
 
-        <!-- FORMULARZ NAZWY -->
+        <!-- WYBÓR ID -->
         <div class="mb-3">
-          <label for="nameInput" class="form-label">Twoja nazwa</label>
-
-          <div class="d-flex gap-2">
-            <input id="nameInput" type="text" maxlength="32"
-                   class="form-control"
-                   placeholder="Wpisz nazwę">
-
-            <button id="setNameBtn" type="button"
-                    class="btn btn-warning fw-bold text-dark">
-              Ustaw
-            </button>
-          </div>
+          <label for="userIdSelect" class="form-label">Wybierz ID użytkownika</label>
+          <select id="userIdSelect" class="form-select">
+            <option value="">-- wybierz --</option>
+          </select>
         </div>
 
         <!-- LISTA UŻYTKOWNIKÓW -->
         <ul id="usersList" class="list-group"></ul>
-
       </div>
     </div>
 
   </div>
 </div>
 
-<script src="script.js"></script>
+<script src="chat.js"></script>
 </body>
 </html>
