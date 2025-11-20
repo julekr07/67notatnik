@@ -136,6 +136,9 @@ $decoded        = requireAuth($jwt_secret);
 $authUserId     = (int)$decoded->userId;
 $authIsTeacher  = (bool)$decoded->isTeacher;
 
+if ($endpoint === "checkauth") 
+    jsonResponse(["Auth" => "True"]);
+
 // ——— MESSAGES ———
 if ($endpoint === "messages") {
     $input   = getJsonInput();
