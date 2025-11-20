@@ -38,13 +38,6 @@
                             <div class="mb-3">
                                 <input type="password" name="password" class="form-control" placeholder="Hasło" required>
                             </div>
-                            <div class="mb-3">
-                                <select name="role" class="form-select" required>
-                                    <option value="" disabled selected>Wybierz rolę</option>
-                                    <option value="uczen">Uczeń</option>
-                                    <option value="nauczyciel">Nauczyciel</option>
-                                </select>
-                            </div>
                             <div class="d-grid gap-2">
                                 <button type="submit" class="btn btn-outline-warning">Zaloguj się</button>
                                 <button type="reset" class="btn btn-outline-warning">Wyloguj się</button>
@@ -76,7 +69,7 @@
 
             try {
                 const response = await fetch(`${apiUrl}/auth`, {
-                    method: 'GET', // w Twoim api.php jest GET, ale lepiej zmienić na POST
+                    method: 'POST', // w Twoim api.php jest GET, ale lepiej zmienić na POST
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ login, password })
                 });
