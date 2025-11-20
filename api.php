@@ -141,7 +141,8 @@ if ($endpoint === "auth") {
     ];
 
     $jwt = JWT::encode($payload, $jwt_secret, 'HS256');
-    jsonResponse(["token" => $jwt]);
+    jsonResponse(["token" => $jwt,
+                    "userid"=> $user['id']]);
 }
 
 // Wszystkie inne endpointy wymagają tokena

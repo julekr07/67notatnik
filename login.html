@@ -79,14 +79,14 @@
                 if (response.ok) {
                     // zapis tokena
                     localStorage.setItem('token', data.token);
-    
+                    console.log(data)
                     // komunikat
                     result.innerText = "✅ Zalogowano pomyślnie!";
                     result.style.color = "#0f0";
     
                     // przekierowanie po krótkiej chwili
                     setTimeout(() => {
-                        window.location.href = "chat.html";
+                        // window.location.href = "chat.html";
                     }, 1000);
                 } else {
                     result.innerText = "❌ Błąd: " + (data.error || "Nieznany");
