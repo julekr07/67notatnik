@@ -60,32 +60,40 @@
     <script>
         const form = document.getElementById('loginForm');
         const result = document.getElementById('result');
-
+    
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-
+    
             const login = form.username.value;
             const password = form.password.value;
-
+    
             try {
                 const response = await fetch(`${apiUrl}/auth`, {
-                    method: 'POST', // w Twoim api.php jest GET, ale lepiej zmienić na POST
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ login, password })
                 });
-
+    
                 const data = await response.json();
-
+    
                 if (response.ok) {
+                    // zapis tokena
                     localStorage.setItem('token', data.token);
+    
+                    // komunikat
                     result.innerText = "✅ Zalogowano pomyślnie!";
                     result.style.color = "#0f0";
+    
+                    // przekierowanie po krótkiej chwili
+                    setTimeout(() => {
+                        window.location.href = "chat.html";
+                    }, 1000);
                 } else {
                     result.innerText = "❌ Błąd: " + (data.error || "Nieznany");
                     result.style.color = "#f00";
                 }
             } catch (err) {
-				console.log(err)
+                console.log(err);
                 result.innerText = "⚠️ Błąd połączenia z API";
                 result.style.color = "#f00";
             }
