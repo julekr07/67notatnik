@@ -79,6 +79,7 @@
                 if (response.ok) {
                     // zapis tokena
                     localStorage.setItem('token', data.token);
+                    localStorage.setItem('userid', data.userid);
                     console.log(data)
                     // komunikat
                     result.innerText = "✅ Zalogowano pomyślnie!";
