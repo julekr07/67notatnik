@@ -1,1 +1,1 @@
-const apiUrl = "http://10.103.8.2/67notatnik/api.php";
+const apiUrl = "http://10.103.8.116/67notatnik/api.php";
