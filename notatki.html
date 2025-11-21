@@ -17,7 +17,6 @@
 </head>
 <body class="container-fluid py-5">
   <div class="row">
-    <!-- LEWA KOLUMNA -->
     <div class="col-12 col-md-3">
       <div class="p-3 bg-secondary border border-warning rounded">
         <h3 class="mb-3">Linki</h3>
@@ -29,10 +28,8 @@
       </div>
     </div>
 
-    <!-- PRAWA KOLUMNA -->
     <div class="col-12 col-md-9">
-      <h1 class="text-warning mb-4">📝 Mój Notatnik</h1>
-
+      <h1 class="text-warning mb-4">📝 Mój Notatnik</h1>   
       <div id="status" class="mb-3"></div>
 
       <!-- Formularz dodawania notatki -->
@@ -48,19 +45,15 @@
     </div>
   </div>
 
+  <script src="global.js"></script>
   <script>
-    const API_BASE = "http://localhost/67notatnik/api.php";
     const statusBox = document.getElementById("status");
-
-    const token = localStorage.getItem("token");
-    const userId = localStorage.getItem("userid");
-
-    let notes = [];
-
     const notesList = document.getElementById("notesList");
     const noteInput = document.getElementById("noteInput");
     const noteTitle = document.getElementById("noteTitle");
     const addNoteBtn = document.getElementById("addNoteBtn");
+
+    let notes = [];
 
     function parseNoteContent(content) {
       try {
@@ -116,53 +109,27 @@
     }
 
     async function loadNotes() {
-      if (!token) {
-        statusBox.innerHTML = '<div class="alert alert-danger">Brak tokena. Zaloguj się ponownie.</div>';
-        return;
-      }
-      try {
-        const res = await fetch(`${API_BASE}?endpoint=notes`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ read: true })
-        });
-        const data = await res.json();
-        notes = Array.isArray(data) ? data : [];
-        renderNotes();
-      } catch (err) {
-        statusBox.innerHTML = `<div class="alert alert-danger">Błąd sieci/API: ${err}</div>`;
-      }
+      const data = await apiLoadNotes(); // korzysta z global.js
+      notes = Array.isArray(data) ? data : [];
+      renderNotes();
     }
 
-    async function addNote() {
+    async function handleAddNote() {
       const title = noteTitle.value.trim();
       const text = noteInput.value.trim();
       if (!text) return;
-
-      const payload = { title, text };
-      try {
-        const res = await fetch(`${API_BASE}?endpoint=notes`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ content: JSON.stringify(payload) })
-        });
-        const data = await res.json();
-        notes.unshift({ id: data.id, userId: Number(userId || 0), content: JSON.stringify(payload) });
+      const data = await apiAddNote(title, text); // korzysta z global.js
+      if (data && data.success) {
+        notes.unshift({ id: data.id, userId: localStorage.getItem("userid"), content: JSON.stringify({ title, text }) });
         noteTitle.value = "";
         noteInput.value = "";
         renderNotes();
-      } catch (err) {
-        statusBox.innerHTML = `<div class="alert alert-danger">Błąd dodawania notatki: ${err}</div>`;
+      } else {
+        statusBox.innerHTML = `<div class="alert alert-danger">Nie udało się dodać notatki</div>`;
       }
     }
 
-    addNoteBtn.addEventListener("click", addNote);
+    addNoteBtn.addEventListener("click", handleAddNote);
 
     document.getElementById("logoutLink").addEventListener("click", () => {
       localStorage.removeItem("token");

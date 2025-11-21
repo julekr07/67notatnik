@@ -79,14 +79,14 @@ function requireAuth($jwt_secret) {
 
 // ——— Routing ———
 $method   = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-$endpoint = $_GET['endpoint'] ?? "";   // <-- tu zmiana
+$endpoint = $_GET['endpoint'] ?? "";
 
 if ($method !== "POST") {
     jsonResponse(["error" => "Only POST allowed"], 405);
 }
 
 /**
- * AUTH — jedyny endpoint bez tokena
+ * AUTH — logowanie
  */
 if ($endpoint === "auth") {
     $input    = getJsonInput();
@@ -118,48 +118,6 @@ if ($endpoint === "auth") {
 // Wszystkie inne endpointy wymagają tokena
 $decoded        = requireAuth($jwt_secret);
 $authUserId     = (int)$decoded->userId;
-$authIsTeacher  = (bool)$decoded->isTeacher;
-
-if ($endpoint === "checkauth") 
-    jsonResponse(["Auth" => "True"]);
-
-// ——— MESSAGES ———
-if ($endpoint === "messages") {
-    $input   = getJsonInput();
-    if (isset($input['last_id'])) {
-        $lastId = (int)$input['last_id'];
-        $stmt = $pdo->prepare("SELECT id, userId, content, created_at FROM messages WHERE id > ? ORDER BY id ASC");
-        $stmt->execute([$lastId]);
-        jsonResponse($stmt->fetchAll(PDO::FETCH_ASSOC));
-    } elseif (isset($input['content'])) {
-        $content = $input['content'];
-        if (!$content) jsonResponse(["error" => "Missing content"], 400);
-        $stmt = $pdo->prepare("INSERT INTO messages (userId, content) VALUES (?, ?)");
-        $stmt->execute([$authUserId, $content]);
-        jsonResponse(["success" => true, "id" => (int)$pdo->lastInsertId()], 201);
-    }
-    jsonResponse(["error" => "Invalid payload"], 400);
-}
-
-// ——— BOARD ———
-if ($endpoint === "board") {
-    $input   = getJsonInput();
-    if (isset($input['read']) && $input['read'] === true) {
-        $stmt = $pdo->query("SELECT id, content FROM board ORDER BY id DESC LIMIT 1");
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        jsonResponse($row ?: []);
-    } elseif (isset($input['content'])) {
-        if (!$authIsTeacher) {
-            jsonResponse(["error" => "Only teacher can update board"], 403);
-        }
-        $content = $input['content'];
-        if (!$content) jsonResponse(["error" => "Missing content"], 400);
-        $stmt = $pdo->prepare("INSERT INTO board (content) VALUES (?)");
-        $stmt->execute([$content]);
-        jsonResponse(["success" => true, "id" => (int)$pdo->lastInsertId()], 201);
-    }
-    jsonResponse(["error" => "Invalid payload"], 400);
-}
 
 // ——— NOTES ———
 if ($endpoint === "notes") {
@@ -180,12 +138,3 @@ if ($endpoint === "notes") {
 
 // ——— Nieznany endpoint ———
 jsonResponse(["error" => "Unknown endpoint"], 404);
-
-// ——— USERS ———
-if ($endpoint === "users") {
-    // Pobierz wszystkich użytkowników
-    $stmt = $pdo->query("SELECT id, login, isTeacher FROM users ORDER BY login ASC");
-    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    jsonResponse($users);
-}
-
