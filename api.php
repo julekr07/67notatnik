@@ -180,3 +180,12 @@ if ($endpoint === "notes") {
 
 // ——— Nieznany endpoint ———
 jsonResponse(["error" => "Unknown endpoint"], 404);
+
+// ——— USERS ———
+if ($endpoint === "users") {
+    // Pobierz wszystkich użytkowników
+    $stmt = $pdo->query("SELECT id, login, isTeacher FROM users ORDER BY login ASC");
+    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    jsonResponse($users);
+}
+
