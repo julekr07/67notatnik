@@ -1,18 +1,16 @@
 <?php
 // --- CORS ---
-header("Access-Control-Allow-Origin: *"); // albo wpisz konkretny adres np. http://192.168.0.23:3000
+header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Authorization, Content-Type, X-Requested-With");
 
-// Obsługa preflight (OPTIONS)
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
 header("Content-Type: application/json; charset=UTF-8");
-
 
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
@@ -50,23 +48,6 @@ function getJsonInput(): array {
     return is_array($data) ? $data : [];
 }
 
-function parsePath(): array {
-    $uriPath   = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? "/";
-    $script    = $_SERVER['SCRIPT_NAME'] ?? "";
-    $scriptBase= basename($script);
-    $scriptDir = rtrim(dirname($script), '/');
-    if ($scriptDir !== '' && $scriptDir !== '/' && strpos($uriPath, $scriptDir) === 0) {
-        $uriPath = substr($uriPath, strlen($scriptDir));
-        if ($uriPath === false) $uriPath = "/";
-    }
-    $uriPath = ltrim($uriPath, '/');
-    if ($scriptBase && strpos($uriPath, $scriptBase) === 0) {
-        $uriPath = substr($uriPath, strlen($scriptBase));
-    }
-    $uriPath = trim($uriPath, "/");
-    return $uriPath === '' ? [] : explode("/", $uriPath);
-}
-
 function requireAuth($jwt_secret) {
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
     if (!$authHeader && !empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
@@ -74,12 +55,6 @@ function requireAuth($jwt_secret) {
     }
     if (!$authHeader && function_exists('getallheaders')) {
         $hdrs = getallheaders();
-        foreach ($hdrs as $k => $v) {
-            if (strtolower($k) === 'authorization') { $authHeader = $v; break; }
-        }
-    }
-    if (!$authHeader && function_exists('apache_request_headers')) {
-        $hdrs = apache_request_headers();
         foreach ($hdrs as $k => $v) {
             if (strtolower($k) === 'authorization') { $authHeader = $v; break; }
         }
@@ -104,18 +79,14 @@ function requireAuth($jwt_secret) {
 
 // ——— Routing ———
 $method   = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-$parts    = parsePath();
-$endpoint = $parts[0] ?? "";
+$endpoint = $_GET['endpoint'] ?? "";   // <-- tu zmiana
 
-// Wszystko tylko POST
 if ($method !== "POST") {
     jsonResponse(["error" => "Only POST allowed"], 405);
 }
 
 /**
  * AUTH — jedyny endpoint bez tokena
- * Metoda: POST
- * Body (JSON): { "login": "...", "password": "..." }
  */
 if ($endpoint === "auth") {
     $input    = getJsonInput();
@@ -141,8 +112,7 @@ if ($endpoint === "auth") {
     ];
 
     $jwt = JWT::encode($payload, $jwt_secret, 'HS256');
-    jsonResponse(["token" => $jwt,
-                    "userid"=> $user['id']]);
+    jsonResponse(["token" => $jwt, "userid"=> $user['id']]);
 }
 
 // Wszystkie inne endpointy wymagają tokena
