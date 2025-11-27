@@ -13,6 +13,18 @@
     .btn-danger { background-color: #dc3545 !important; border-color: #dc3545 !important; color: #fff !important; }
     .form-control { background-color: #000 !important; border-color: #ff9800 !important; color: #fff !important; }
     .list-group-item { background-color: #000; border-color: #ff9800; color: #fff; }
+
+    /* animacja rozwijania */
+    .note-details {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease, opacity 0.4s ease;
+      opacity: 0;
+    }
+    .note-details.open {
+      max-height: 500px;
+      opacity: 1;
+    }
   </style>
 </head>
 <body class="container-fluid py-5">
@@ -75,41 +87,80 @@
         const { title, text } = parseNoteContent(note.content);
 
         const li = document.createElement("li");
-        li.className = "list-group-item border-warning d-flex justify-content-between align-items-center";
+        li.className = "list-group-item border-warning";
+
+        const header = document.createElement("div");
+        header.className = "d-flex justify-content-between align-items-center";
+        header.style.cursor = "pointer";
 
         const textSpan = document.createElement("span");
         textSpan.textContent = displayTitleOrPreview({ title, text });
 
         const btnGroup = document.createElement("div");
 
-        const editBtn = document.createElement("button");
-        editBtn.className = "btn btn-sm btn-warning me-2";
-        editBtn.textContent = "✏️ Edytuj";
-        editBtn.onclick = () => {
-          noteTitle.value = title;
-          noteInput.value = text;
-          notes.splice(index, 1);
-          renderNotes();
-        };
-
         const deleteBtn = document.createElement("button");
         deleteBtn.className = "btn btn-sm btn-danger";
         deleteBtn.textContent = "🗑️ Usuń";
-        deleteBtn.onclick = () => {
-          notes.splice(index, 1);
-          renderNotes();
+        deleteBtn.onclick = async (e) => {
+          e.stopPropagation();
+          const resp = await apiDeleteNote(note.id);
+          if (resp && resp.success) {
+            notes.splice(index, 1);
+            renderNotes();
+          } else {
+            const msg = resp && resp.error ? resp.error : "Nie udało się usunąć notatki";
+            statusBox.innerHTML = `<div class="alert alert-danger">${msg}</div>`;
+          }
         };
 
-        btnGroup.appendChild(editBtn);
         btnGroup.appendChild(deleteBtn);
-        li.appendChild(textSpan);
-        li.appendChild(btnGroup);
+        header.appendChild(textSpan);
+        header.appendChild(btnGroup);
+
+        const details = document.createElement("div");
+        details.className = "note-details mt-2";
+
+        const titleInput = document.createElement("input");
+        titleInput.className = "form-control border-warning mb-2";
+        titleInput.value = title;
+
+        const textArea = document.createElement("textarea");
+        textArea.className = "form-control border-warning mb-2";
+        textArea.rows = 3;
+        textArea.value = text;
+
+        const saveBtn = document.createElement("button");
+        saveBtn.className = "btn btn-sm btn-warning";
+        saveBtn.textContent = "💾 Zapisz";
+        saveBtn.onclick = async (e) => {
+          e.stopPropagation();
+          const newTitle = titleInput.value.trim();
+          const newText = textArea.value.trim();
+          if (!newText) return;
+
+          const data = await apiAddNote(newTitle, newText);
+          if (data && data.success) {
+            notes[index].content = JSON.stringify({ title: newTitle, text: newText });
+            renderNotes();
+          }
+        };
+
+        details.appendChild(titleInput);
+        details.appendChild(textArea);
+        details.appendChild(saveBtn);
+
+        header.onclick = () => {
+          details.classList.toggle("open");
+        };
+
+        li.appendChild(header);
+        li.appendChild(details);
         notesList.appendChild(li);
       });
     }
 
     async function loadNotes() {
-      const data = await apiLoadNotes(); // korzysta z global.js
+      const data = await apiLoadNotes();
       notes = Array.isArray(data) ? data : [];
       renderNotes();
     }
@@ -118,7 +169,7 @@
       const title = noteTitle.value.trim();
       const text = noteInput.value.trim();
       if (!text) return;
-      const data = await apiAddNote(title, text); // korzysta z global.js
+      const data = await apiAddNote(title, text);
       if (data && data.success) {
         notes.unshift({ id: data.id, userId: localStorage.getItem("userid"), content: JSON.stringify({ title, text }) });
         noteTitle.value = "";

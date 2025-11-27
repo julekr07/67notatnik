@@ -134,29 +134,45 @@ $decoded        = requireAuth($jwt_secret);
 $authUserId     = (int)$decoded->userId;
 
 if ($endpoint === "users") {
-    // Pobierz id i login z tabeli users
     $stmt = $pdo->query("SELECT id, login FROM users");
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    // Zwróć jako JSON
     jsonResponse($rows);
 }
-
 
 // ——— NOTES ———
 if ($endpoint === "notes") {
     $input   = getJsonInput();
+
+    // Odczyt
     if (isset($input['read']) && $input['read'] === true) {
         $stmt = $pdo->prepare("SELECT id, userId, content FROM notes WHERE userId = ?");
         $stmt->execute([$authUserId]);
         jsonResponse($stmt->fetchAll(PDO::FETCH_ASSOC));
-    } elseif (isset($input['content'])) {
+    }
+
+    // Dodanie
+    if (isset($input['content'])) {
         $content = $input['content'];
         if (!$content) jsonResponse(["error" => "Missing content"], 400);
         $stmt = $pdo->prepare("INSERT INTO notes (userId, content) VALUES (?, ?)");
         $stmt->execute([$authUserId, $content]);
         jsonResponse(["success" => true, "id" => (int)$pdo->lastInsertId()], 201);
     }
+
+    // Usunięcie
+    if (isset($input['delete']) && $input['delete'] === true) {
+        $noteId = isset($input['id']) ? (int)$input['id'] : 0;
+        if ($noteId <= 0) jsonResponse(["error" => "Missing or invalid id"], 400);
+
+        $stmt = $pdo->prepare("DELETE FROM notes WHERE id = ? AND userId = ?");
+        $stmt->execute([$noteId, $authUserId]);
+
+        if ($stmt->rowCount() === 0) {
+            jsonResponse(["error" => "Not found"], 404);
+        }
+        jsonResponse(["success" => true]);
+    }
+
     jsonResponse(["error" => "Invalid payload"], 400);
 }
 
