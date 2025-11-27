@@ -1,3 +1,4 @@
+
 <?php
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Credentials: true");
@@ -46,9 +47,6 @@ function getJsonInput(): array {
 
 function requireAuth($jwt_secret) {
     $authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? null;
-    if (!$authHeader && !empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
-        $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
-    }
     if (!$authHeader && function_exists('getallheaders')) {
         $hdrs = getallheaders();
         foreach ($hdrs as $k => $v) {
@@ -75,39 +73,33 @@ function requireAuth($jwt_secret) {
 
 $decoded    = requireAuth($jwt_secret);
 $authUserId = (int)$decoded->userId;
+$input      = getJsonInput();
 
-$input = getJsonInput();
-
-// pobieranie wiadomości z loginem
+// pobieranie wszystkich wiadomości (globalny czat)
 if (isset($input['read']) && $input['read'] === true) {
-    $partnerId = $input['partnerId'] ?? null;
-    if (!$partnerId) jsonResponse(["error" => "Missing partnerId"], 400);
-
-    $stmt = $pdo->prepare("SELECT m.id,
-                                   m.senderId,
-                                   u.login AS senderLogin,
-                                   m.receiverId,
-                                   m.content,
-                                   m.createdAt
-                          FROM messages m
-                          JOIN users u ON m.senderId = u.id
-                          WHERE (m.senderId = ? AND m.receiverId = ?)
-                             OR (m.senderId = ? AND m.receiverId = ?)
-                          ORDER BY m.createdAt ASC");
-    $stmt->execute([$authUserId, $partnerId, $partnerId, $authUserId]);
+    $stmt = $pdo->query("SELECT m.id,
+                                m.userId AS senderId,
+                                u.login AS senderLogin,
+                                m.content,
+                                m.created_at
+                         FROM messages m
+                         JOIN users u ON m.userId = u.id
+                         ORDER BY m.created_at ASC");
     jsonResponse($stmt->fetchAll(PDO::FETCH_ASSOC));
 }
 
 // wysyłanie wiadomości
-elseif (isset($input['receiverId']) && isset($input['content'])) {
-    $receiverId = (int)$input['receiverId'];
-    $content    = trim($input['content']);
+if (isset($input['content'])) {
+    $content = trim($input['content']);
     if (!$content) jsonResponse(["error" => "Missing content"], 400);
 
-    $stmt = $pdo->prepare("INSERT INTO messages (senderId, receiverId, content) VALUES (?, ?, ?)");
-    $stmt->execute([$authUserId, $receiverId, $content]);
-
-    jsonResponse(["success" => true, "id" => (int)$pdo->lastInsertId()], 201);
+    try {
+        $stmt = $pdo->prepare("INSERT INTO messages (userId, content, created_at) VALUES (?, ?, NOW())");
+        $stmt->execute([$authUserId, $content]);
+        jsonResponse(["success" => true, "id" => (int)$pdo->lastInsertId()], 201);
+    } catch (Exception $e) {
+        jsonResponse(["error" => $e->getMessage()], 500);
+    }
 }
 
 jsonResponse(["error" => "Invalid payload"], 400);

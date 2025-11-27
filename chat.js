@@ -1,7 +1,8 @@
 const chatUrl = "http://10.103.8.116/67notatnik/chat.php";
 const apiUrl  = "http://10.103.8.116/67notatnik/api.php";
 
-async function apiLoadMessages(partnerId) {
+// pobieranie wszystkich wiadomości
+async function apiLoadMessages() {
   const token = localStorage.getItem("token");
   const res = await fetch(chatUrl, {
     method: "POST",
@@ -9,7 +10,7 @@ async function apiLoadMessages(partnerId) {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`
     },
-    body: JSON.stringify({ read: true, partnerId: Number(partnerId) })
+    body: JSON.stringify({ read: true })
   });
   if (!res.ok) {
     console.error("Błąd pobierania wiadomości:", res.status, await res.text());
@@ -18,26 +19,34 @@ async function apiLoadMessages(partnerId) {
   return res.json();
 }
 
-async function apiSendMessage(receiverId, content) {
+// wysyłanie wiadomości
+async function apiSendMessage(content) {
   const token = localStorage.getItem("token");
+  if (!token) {
+    console.error("Brak tokenu – musisz się zalogować!");
+    return null;
+  }
   const res = await fetch(chatUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${token}`
     },
-    body: JSON.stringify({ receiverId: Number(receiverId), content: String(content).trim() })
+    body: JSON.stringify({ content: String(content).trim() })
   });
+  const text = await res.text();
+  console.log("Odpowiedź serwera:", text);
   if (!res.ok) {
-    console.error("Błąd wysyłania wiadomości:", res.status, await res.text());
+    console.error("Błąd wysyłania wiadomości:", res.status, text);
     return null;
   }
-  return res.json();
+  return JSON.parse(text);
 }
 
+// pobieranie użytkowników
 async function apiLoadUsers() {
   const token = localStorage.getItem("token");
-  const res = await fetch(`${apiUrl}/users`, {   // <-- poprawione
+  const res = await fetch(`${apiUrl}/users`, {
     headers: { "Authorization": `Bearer ${token}` }
   });
   if (!res.ok) {

@@ -179,7 +179,10 @@
   // Obsługa formularza
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    sendMessage(input.value);
+  function SendMessage(content) {
+  return apiSendMessage(content);
+}
+
   });
 
   // Pobieranie i render użytkowników (lista + select)
