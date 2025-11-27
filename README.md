@@ -43,15 +43,14 @@ Odpowiedź (200):
 400 – Missing login or password
 401 – Invalid credentials
 ```
-2. POST /users
+### `2. POST /users`
 Opis: Pobiera listę wszystkich użytkowników (id i login).
-
+```
 Nagłówki:
-
 Authorization: Bearer <TOKEN>
 
 Body: brak
-
+```
 Odpowiedź (200):
 
 ```json
@@ -60,36 +59,38 @@ Odpowiedź (200):
   { "id": 2, "login": "anna" }
 ]
 ```
-3. POST /notes
+### 3. `POST /notes`
 
 Opis: Obsługa prywatnych notatek użytkownika.
-
+```
 Nagłówki:
-
 Authorization: Bearer <TOKEN>
 
 a) Pobranie notatek
-
 Body (JSON):
 
 { "read": true }
-
+```
 Odpowiedź (200):
-
+```json
 [
   { "id": 1, "userId": 1, "content": "Moja notatka" },
   { "id": 2, "userId": 1, "content": "Druga notatka" }
 ]
-
+```
+```
 b) Dodanie notatki
 
 Body (JSON):
-
 { "content": "Nowa notatka" }
-
+```
 Odpowiedź (201):
-
-{ "success": true, "id": 3 }
+```json
+{
+    "success": true,
+    "id": 3 
+}
+```
 
 Błędy:
 
