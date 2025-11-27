@@ -37,29 +37,24 @@ Odpowiedź (200):
 
 ```
 
-Błędy:
+**Błędy**:
 
+```txt
 400 – Missing login or password
-
 401 – Invalid credentials
-
+```
 2. POST /users
-
 Opis: Pobiera listę wszystkich użytkowników (id i login).
-
 Nagłówki:
-
 Authorization: Bearer <TOKEN>
-
 Body: brak
-
 Odpowiedź (200):
-
+```json
 [
   { "id": 1, "login": "jan" },
   { "id": 2, "login": "anna" }
 ]
-
+```
 3. POST /notes
 
 Opis: Obsługa prywatnych notatek użytkownika.
