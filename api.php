@@ -79,7 +79,8 @@ function requireAuth($jwt_secret) {
 
 // ——— Routing ———
 $method   = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-$endpoint = $_GET['endpoint'] ?? "";
+$parts    = parsePath();
+$endpoint = $parts[0] ?? "";
 
 /**
  * AUTH — logowanie
