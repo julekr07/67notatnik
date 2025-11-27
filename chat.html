@@ -3,10 +3,28 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Czat grupowy</title>
+  <title>Czat</title>
 
+  <!-- Bootstrap -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Twoje style (opcjonalnie) -->
   <link rel="stylesheet" href="styl.css">
+
+  <style>
+    body { background-color: #000; color: #fff; }
+    .bg-secondary { background-color: #111 !important; }
+    .border-warning { border-color: #ff9800 !important; }
+    .text-warning { color: #ff9800 !important; }
+    .btn-warning { background-color: #ff9800 !important; border-color: #ff9800 !important; color: #000 !important; }
+    .form-control, .form-select { background-color: #000 !important; border-color: #ff9800 !important; color: #fff !important; }
+    .list-group-item { background-color: #000; border-color: #ff9800; color: #fff; }
+    #messages { min-height: 300px; max-height: 60vh; overflow-y: auto; }
+    .msg-item { padding: .5rem .75rem; border-radius: .5rem; margin-bottom: .5rem; }
+    .msg-me { background: #222; border: 1px solid #ff9800; }
+    .msg-other { background: #151515; border: 1px solid #444; }
+    .msg-meta { font-size: .8rem; color: #bbb; }
+  </style>
 </head>
 <body>
 
@@ -18,46 +36,54 @@
       <div class="p-3 bg-secondary border border-warning rounded">
         <h3 class="mb-3">Linki</h3>
         <ul class="list-unstyled">
-          <li class="mb-2"><a href="login.html" class="text-warning text-decoration-none">Wyloguj się</a></li>
+          <li class="mb-2"><a href="login.html" class="text-warning text-decoration-none" id="logoutLink">Wyloguj się</a></li>
           <li class="mb-2"><a href="tablica.html" class="text-warning text-decoration-none">Tablica</a></li>
           <li><a href="notatki.html" class="text-warning text-decoration-none">Notatki</a></li>
         </ul>
+
+        <hr class="border-warning">
+
+        <div class="small">
+          <div><b>Twój login:</b> <span id="myLogin">—</span></div>
+          <div><b>Twoje ID:</b> <span id="myId">—</span></div>
+          <div><b>Status:</b> <span id="connectedStatus" class="text-muted">łączenie…</span></div>
+        </div>
       </div>
     </div>
 
-    <!-- ŚRODEK -->
+    <!-- ŚRODEK (CHAT) -->
     <div class="col-12 col-md-6">
       <div class="p-3 bg-secondary border border-warning rounded d-flex flex-column" style="height:100%;">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h3 class="mb-0">Czat grupowy</h3>
-          <span id="connectedStatus" class="text-muted small">tryb lokalny</span>
+          <h3 class="mb-0">Czat 1:1</h3>
+          <span id="partnerName" class="text-warning">Brak wybranego rozmówcy</span>
         </div>
 
-        <!-- CHAT BOX -->
-        <div id="messages" class="flex-grow-1 overflow-auto p-2 mb-3 bg-dark border border-warning rounded"></div>
+        <!-- OKNO WIADOMOŚCI -->
+        <div id="messages" class="flex-grow-1 p-2 mb-3 bg-dark border border-warning rounded"></div>
 
-        <!-- FORMULARZ -->
+        <!-- FORMULARZ WYSYŁANIA -->
         <form id="form" class="d-flex gap-2">
           <input id="input" type="text" autocomplete="off" class="form-control" placeholder="Napisz wiadomość...">
           <button type="submit" class="btn btn-warning fw-bold text-dark">Wyślij</button>
         </form>
+
+        <div id="statusBox" class="mt-2"></div>
       </div>
     </div>
 
-    <!-- PRAWA KOLUMNA -->
+    <!-- PRAWA KOLUMNA (UŻYTKOWNICY) -->
     <div class="col-12 col-md-3">
       <div class="p-3 bg-secondary border border-warning rounded">
         <h3 class="mb-3">Użytkownicy</h3>
 
-        <!-- WYBÓR ID -->
         <div class="mb-3">
-          <label for="userIdSelect" class="form-label">Wybierz ID użytkownika</label>
+          <label for="userIdSelect" class="form-label">Wybierz rozmówcę</label>
           <select id="userIdSelect" class="form-select">
-            <option value="">-- wybierz --</option>
+            <option value="">— wybierz —</option>
           </select>
         </div>
 
-        <!-- LISTA UŻYTKOWNIKÓW -->
         <ul id="usersList" class="list-group"></ul>
       </div>
     </div>
@@ -65,6 +91,184 @@
   </div>
 </div>
 
+<!-- API funkcje czatu -->
 <script src="chat.js"></script>
+
+<script>
+  // Elementy UI
+  const messagesBox   = document.getElementById("messages");
+  const form          = document.getElementById("form");
+  const input         = document.getElementById("input");
+  const userIdSelect  = document.getElementById("userIdSelect");
+  const usersList     = document.getElementById("usersList");
+  const statusBox     = document.getElementById("statusBox");
+  const connectedStatus = document.getElementById("connectedStatus");
+  const partnerName   = document.getElementById("partnerName");
+  const myLoginEl     = document.getElementById("myLogin");
+  const myIdEl        = document.getElementById("myId");
+
+  // Dane bieżącego użytkownika z localStorage (ustawione po logowaniu)
+  const myId    = localStorage.getItem("userid");
+  const myLogin = localStorage.getItem("username"); // pamiętaj, żeby dodać login do odpowiedzi /auth i zapisać go w localStorage
+
+  myLoginEl.textContent = myLogin || "—";
+  myIdEl.textContent    = myId || "—";
+
+  // Mapa id -> login
+  let usersMap = {};
+  let partnerId = ""; // aktualnie wybrany rozmówca
+
+  // Render wiadomości (z uwzględnieniem loginów)
+  function renderMessages(msgs) {
+    messagesBox.innerHTML = "";
+    msgs.forEach(m => {
+      const isMe = String(m.senderId) === String(myId);
+      const senderLogin =
+        isMe
+          ? (myLogin || "Ty")
+          : (m.senderLogin || usersMap[m.senderId] || `Użytkownik ${m.senderId}`);
+
+      const item = document.createElement("div");
+      item.className = `msg-item ${isMe ? "msg-me" : "msg-other"}`;
+      item.innerHTML = `
+        <div><b>${senderLogin}:</b> ${escapeHtml(m.content)}</div>
+        <div class="msg-meta">${formatDate(m.createdAt)}</div>
+      `;
+      messagesBox.appendChild(item);
+    });
+    messagesBox.scrollTop = messagesBox.scrollHeight;
+  }
+
+  // Ładowanie wiadomości dla partnera
+  async function loadChat() {
+    if (!partnerId) return;
+    try {
+      const msgs = await apiLoadMessages(partnerId);
+      if (Array.isArray(msgs)) {
+        renderMessages(msgs);
+        connectedStatus.textContent = "połączono z API";
+      } else {
+        statusBox.innerHTML = `<div class="alert alert-danger">Nie udało się pobrać wiadomości.</div>`;
+      }
+    } catch (e) {
+      connectedStatus.textContent = "błąd połączenia";
+      statusBox.innerHTML = `<div class="alert alert-danger">Błąd połączenia: ${e?.message || e}</div>`;
+    }
+  }
+
+  // Wysyłanie wiadomości
+  async function sendMessage(text) {
+    if (!partnerId) {
+      statusBox.innerHTML = `<div class="alert alert-warning">Wybierz rozmówcę z listy po prawej.</div>`;
+      return;
+    }
+    if (!text.trim()) return;
+    try {
+      const res = await apiSendMessage(partnerId, text.trim());
+      if (res && res.success) {
+        input.value = "";
+        await loadChat();
+      } else {
+        statusBox.innerHTML = `<div class="alert alert-danger">Nie udało się wysłać wiadomości.</div>`;
+      }
+    } catch (e) {
+      statusBox.innerHTML = `<div class="alert alert-danger">Błąd połączenia: ${e?.message || e}</div>`;
+    }
+  }
+
+  // Obsługa formularza
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    sendMessage(input.value);
+  });
+
+  // Pobieranie i render użytkowników (lista + select)
+  async function loadUsers() {
+    try {
+      const users = await apiLoadUsers();
+      usersList.innerHTML = "";
+      userIdSelect.innerHTML = '<option value="">— wybierz —</option>';
+
+      users.forEach(u => {
+        usersMap[u.id] = u.login;
+
+        const li = document.createElement("li");
+        li.className = "list-group-item border-warning d-flex justify-content-between align-items-center";
+        li.innerHTML = `<span>${u.login}</span><span class="text-muted small">ID: ${u.id}</span>`;
+        li.style.cursor = "pointer";
+        li.addEventListener("click", () => {
+          userIdSelect.value = u.id;
+          setPartner(u.id);
+        });
+        usersList.appendChild(li);
+
+        const opt = document.createElement("option");
+        opt.value = u.id;
+        opt.textContent = `${u.login} (ID: ${u.id})`;
+        userIdSelect.appendChild(opt);
+      });
+
+      connectedStatus.textContent = "połączono z API";
+    } catch (e) {
+      connectedStatus.textContent = "błąd połączenia";
+      usersList.innerHTML = `<li class="list-group-item border-warning">Nie udało się pobrać użytkowników.</li>`;
+    }
+  }
+
+  // Zmiana rozmówcy
+  function setPartner(id) {
+    partnerId = id || "";
+    const name = usersMap[partnerId] || (partnerId ? `Użytkownik ${partnerId}` : "Brak wybranego rozmówcy");
+    partnerName.textContent = name;
+    loadChat();
+  }
+
+  userIdSelect.addEventListener("change", (e) => {
+    setPartner(e.target.value);
+  });
+
+  // Wylogowanie
+  document.getElementById("logoutLink").addEventListener("click", () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userid");
+    localStorage.removeItem("username");
+  });
+
+  // Odświeżanie czatu co 3 sekundy
+  const interval = setInterval(loadChat, 3000);
+
+  // Pomocnicze: sanitizacja HTML i format daty
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+  function formatDate(dt) {
+    if (!dt) return "";
+    const d = new Date(dt);
+    if (isNaN(d.getTime())) return dt; // jeśli to już sformatowany string z MySQL
+    return d.toLocaleString();
+  }
+
+  // Start
+  (async function init() {
+    // jeśli nie ma tokena – przekieruj do logowania
+    const token = localStorage.getItem("token");
+    if (!token) {
+      connectedStatus.textContent = "brak tokena – zaloguj się";
+      window.location.href = "login.html";
+      return;
+    }
+    await loadUsers();
+    // opcjonalnie: automatycznie ustaw pierwszego rozmówcę (jeśli istnieje)
+    const firstUserId = Object.keys(usersMap).find(id => String(id) !== String(myId));
+    if (firstUserId) setPartner(firstUserId);
+  })();
+</script>
+
+<!-- Bootstrap JS (opcjonalnie do komponentów) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>
