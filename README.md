@@ -35,6 +35,8 @@ Odpowiedź (200):
   "userid": 1
 }
 
+```
+
 Błędy:
 
 400 – Missing login or password
