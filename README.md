@@ -45,10 +45,15 @@ Odpowiedź (200):
 ```
 2. POST /users
 Opis: Pobiera listę wszystkich użytkowników (id i login).
+
 Nagłówki:
+
 Authorization: Bearer <TOKEN>
+
 Body: brak
+
 Odpowiedź (200):
+
 ```json
 [
   { "id": 1, "login": "jan" },
