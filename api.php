@@ -81,10 +81,6 @@ function requireAuth($jwt_secret) {
 $method   = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $endpoint = $_GET['endpoint'] ?? "";
 
-if ($method !== "POST") {
-    jsonResponse(["error" => "Only POST allowed"], 405);
-}
-
 /**
  * AUTH — logowanie
  */
@@ -118,6 +114,16 @@ if ($endpoint === "auth") {
 // Wszystkie inne endpointy wymagają tokena
 $decoded        = requireAuth($jwt_secret);
 $authUserId     = (int)$decoded->userId;
+
+if ($endpoint === "users") {
+    // Pobierz id i login z tabeli users
+    $stmt = $pdo->query("SELECT id, login FROM users");
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Zwróć jako JSON
+    jsonResponse($rows);
+}
+
 
 // ——— NOTES ———
 if ($endpoint === "notes") {
