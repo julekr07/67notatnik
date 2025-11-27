@@ -1,7 +1,7 @@
 # 67notatnik
 
-Dzień dobry panie Piotrze!!
-Witamy w grze 😈😈😈
+Dzień dobry panie Piotrze!!<br>
+***<span style="color: red; font-size: 30px;">Witamy w grze😈😈😈</span>***
 
 # 📘 Dokumentacja API – `school_api`
 
@@ -93,20 +93,14 @@ Odpowiedź (201):
 ```
 
 Błędy:
-
+```
 400 – Missing content / Invalid payload
-
-⚠️ Obsługa błędów
-
 401 – Missing token / Invalid token
-
 403 – Brak uprawnień
-
 404 – Unknown endpoint
-
 405 – Method not allowed
-
-📝 Uwagi
+```
+#  📝 Uwagi
 
 Wszystkie endpointy (poza /auth) wymagają tokena JWT.
 
