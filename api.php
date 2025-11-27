@@ -77,6 +77,23 @@ function requireAuth($jwt_secret) {
     }
 }
 
+function parsePath(): array {
+    $uriPath   = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? "/";
+    $script    = $_SERVER['SCRIPT_NAME'] ?? "";
+    $scriptBase= basename($script);
+    $scriptDir = rtrim(dirname($script), '/');
+    if ($scriptDir !== '' && $scriptDir !== '/' && strpos($uriPath, $scriptDir) === 0) {
+        $uriPath = substr($uriPath, strlen($scriptDir));
+        if ($uriPath === false) $uriPath = "/";
+    }
+    $uriPath = ltrim($uriPath, '/');
+    if ($scriptBase && strpos($uriPath, $scriptBase) === 0) {
+        $uriPath = substr($uriPath, strlen($scriptBase));
+    }
+    $uriPath = trim($uriPath, "/");
+    return $uriPath === '' ? [] : explode("/", $uriPath);
+}
+
 // ——— Routing ———
 $method   = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $parts    = parsePath();
