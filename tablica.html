@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Tablica nauczyciela</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #000; color: #fff; }
+    .bg-secondary { background-color: #111 !important; }
+    .border-warning { border-color: #ff9800 !important; }
+    .text-warning { color: #ff9800 !important; }
+    .btn-warning { background-color: #ff9800 !important; border-color: #ff9800 !important; color: #000 !important; }
+    .form-control { background-color: #000 !important; border-color: #ff9800 !important; color: #fff !important; }
+  </style>
+</head>
+<body class="container-fluid py-5">
+  <div class="row">
+    <div class="col-12 col-md-3">
+      <div class="p-3 bg-secondary border border-warning rounded">
+        <h3 class="mb-3">Linki</h3>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="login.html" class="text-warning text-decoration-none" id="logoutLink">Wyloguj się</a></li>
+          <li class="mb-2"><a href="tablica.html" class="text-warning text-decoration-none">Tablica</a></li>
+          <li><a href="notatki.html" class="text-warning text-decoration-none">Notatki</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-9">
+      <h1 class="text-warning mb-4">📋 Tablica nauczyciela</h1>
+      <div id="status" class="mb-3"></div>
+
+      <!-- Formularz edycji tablicy (tylko dla nauczyciela) -->
+      <div id="boardEditor" class="mb-3" style="display:none;">
+        <textarea id="boardInput" class="form-control border-warning" rows="4" placeholder="Treść tablicy..."></textarea>
+        <button id="saveBoardBtn" class="btn btn-warning mt-2">💾 Zapisz tablicę</button>
+      </div>
+
+      <!-- Wyświetlanie tablicy -->
+      <h3 class="text-warning mt-5">Aktualna treść tablicy:</h3>
+      <div id="boardContent" class="p-3 border border-warning rounded bg-secondary"></div>
+    </div>
+  </div>
+
+  <script src="global.js"></script>
+  <script>
+    const statusBox = document.getElementById("status");
+    const boardContent = document.getElementById("boardContent");
+    const boardInput = document.getElementById("boardInput");
+    const saveBoardBtn = document.getElementById("saveBoardBtn");
+    const boardEditor = document.getElementById("boardEditor");
+
+    async function loadBoard() {
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://10.103.8.116/67notatnik/api.php/board", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ read: true })
+      });
+      const data = await res.json();
+      boardContent.textContent = data.content || "(Tablica jest pusta)";
+    }
+
+    async function saveBoard() {
+      const token = localStorage.getItem("token");
+      const text = boardInput.value.trim();
+      if (!text) return;
+      const res = await fetch("http://10.103.8.116/67notatnik/api.php/board", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ content: text })
+      });
+      const data = await res.json();
+      if (data.success) {
+        statusBox.innerHTML = `<div class="alert alert-success">Tablica zaktualizowana!</div>`;
+        loadBoard();
+      } else {
+        statusBox.innerHTML = `<div class="alert alert-danger">${data.error || "Błąd zapisu tablicy"}</div>`;
+      }
+    }
+
+    saveBoardBtn.addEventListener("click", saveBoard);
+
+    document.getElementById("logoutLink").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userid");
+    });
+
+    // Pokazuj edytor tylko dla nauczyciela
+    if (localStorage.getItem("isTeacher") === "true") {
+      boardEditor.style.display = "block";
+    }
+
+    loadBoard();
+  </script>
+</body>
+</html>

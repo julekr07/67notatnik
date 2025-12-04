@@ -178,3 +178,30 @@ if ($endpoint === "notes") {
 
 // ——— Nieznany endpoint ———
 jsonResponse(["error" => "Unknown endpoint"], 404);
+
+
+if ($endpoint === "board") {
+    $input = getJsonInput();
+
+    // Odczyt tablicy (dla wszystkich)
+    if (isset($input['read']) && $input['read'] === true) {
+        $stmt = $pdo->query("SELECT id, content FROM board ORDER BY id DESC LIMIT 1");
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        jsonResponse($row ?: []);
+    }
+
+    // Zapis tablicy (tylko nauczyciel)
+    if (isset($input['content'])) {
+        if (!$decoded->isTeacher) {
+            jsonResponse(["error" => "Only teacher can update board"], 403);
+        }
+        $content = $input['content'];
+        if (!$content) jsonResponse(["error" => "Missing content"], 400);
+
+        $stmt = $pdo->prepare("INSERT INTO board (content) VALUES (?)");
+        $stmt->execute([$content]);
+        jsonResponse(["success" => true, "id" => (int)$pdo->lastInsertId()], 201);
+    }
+
+    jsonResponse(["error" => "Invalid payload"], 400);
+}
