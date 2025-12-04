@@ -11,50 +11,83 @@
     .text-warning { color: #ff9800 !important; }
     .btn-warning { background-color: #ff9800 !important; border-color: #ff9800 !important; color: #000 !important; }
     .form-control { background-color: #000 !important; border-color: #ff9800 !important; color: #fff !important; }
+
+    .sidebar {
+      min-height: 100vh;
+      background-color: #111;
+      border-right: 1px solid #ff9800;
+      padding: 20px;
+    }
+    .sidebar a {
+      display: block;
+      color: #00bfff; /* kolor odnośników */
+      text-decoration: none;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    .sidebar a:hover {
+      color: #fff;
+    }
+
+    #usernameDisplay {
+      font-size: 16px;
+      color: #0f0;
+      margin-bottom: 15px;
+    }
   </style>
 </head>
-<body class="container-fluid py-5">
-  <div class="row">
-    <div class="col-12 col-md-3">
-      <div class="p-3 bg-secondary border border-warning rounded">
-        <h3 class="mb-3">Linki</h3>
-        <ul class="list-unstyled">
-          <li class="mb-2"><a href="login.html" class="text-warning text-decoration-none" id="logoutLink">Wyloguj się</a></li>
-          <li class="mb-2"><a href="tablica.html" class="text-warning text-decoration-none">Tablica</a></li>
-          <li class="mb-2"><a href="notatki.html" class="text-warning text-decoration-none">Notatki</a></li>
-          <li><a href="addusers.html" class="text-warning text-decoration-none">Dodaj użytkownika</a></li>
-        </ul>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Lewa kolumna z odnośnikami -->
+     <div class="col-md-2 sidebar" id="sidebar">
+  <h4 class="text-warning">Menu</h4>
+  <a href="login.html" id="logoutLink">Logowanie</a>
+  <a href="tablica.html">Tablica</a>
+  <a href="notatki.html">Notatki</a>
+  <a href="chat.html">Chat</a>
+  <a href="addusers.html">Dodaj użytkownika</a>
+</div>
+
+
+      <!-- Prawa kolumna z formularzem -->
+      <div class="col-md-10 py-4">
+        <h1 class="text-warning mb-2">Panel nauczyciela – Dodaj użytkownika</h1>
+        <!-- Nazwa użytkownika -->
+        <div id="usernameDisplay"></div>
+
+        <div id="status" class="mb-3"></div>
+
+        <form id="addUserForm" class="p-3 border border-warning rounded bg-secondary">
+          <div class="mb-3">
+            <label class="form-label text-warning">Login</label>
+            <input id="loginInput" class="form-control border-warning" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-warning">Hasło</label>
+            <input id="passwordInput" type="password" class="form-control border-warning" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-warning">Rola</label>
+            <select id="roleSelect" class="form-control border-warning">
+              <option value="false">Uczeń</option>
+              <option value="true">Nauczyciel</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-warning">Dodaj użytkownika</button>
+        </form>
       </div>
-    </div>
-
-    <div class="col-12 col-md-9">
-      <h1 class="text-warning mb-4">👩‍🏫 Panel nauczyciela – Dodaj użytkownika</h1>
-      <div id="status" class="mb-3"></div>
-
-      <form id="addUserForm" class="p-3 border border-warning rounded bg-secondary">
-        <div class="mb-3">
-          <label class="form-label text-warning">Login</label>
-          <input id="loginInput" class="form-control border-warning" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label text-warning">Hasło</label>
-          <input id="passwordInput" type="password" class="form-control border-warning" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label text-warning">Rola</label>
-          <select id="roleSelect" class="form-control border-warning">
-            <option value="false">Uczeń</option>
-            <option value="true">Nauczyciel</option>
-          </select>
-        </div>
-        <button type="submit" class="btn btn-warning">➕ Dodaj użytkownika</button>
-      </form>
     </div>
   </div>
 
   <script>
     const form = document.getElementById("addUserForm");
     const statusBox = document.getElementById("status");
+    const usernameDisplay = document.getElementById("usernameDisplay");
+
+    // Wyświetlenie nazwy zalogowanego użytkownika
+    const username = localStorage.getItem("username") || "Nieznany użytkownik";
+    usernameDisplay.textContent = "Zalogowany jako: " + username;
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -90,6 +123,7 @@
       localStorage.removeItem("token");
       localStorage.removeItem("userid");
       localStorage.removeItem("isTeacher");
+      localStorage.removeItem("username");
     });
 
     // ukryj formularz jeśli nie nauczyciel
