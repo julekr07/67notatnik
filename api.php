@@ -228,6 +228,34 @@ if ($endpoint === "messages") {
     jsonResponse(["error" => "Invalid payload"], 400);
 }
 
+if ($endpoint === "addusers") {
+    // tylko nauczyciel może dodawać użytkowników
+    if (!$decoded->isTeacher) {
+        jsonResponse(["error" => "Only teacher can add users"], 403);
+    }
+
+    $input = getJsonInput();
+    $login    = $input['login'] ?? null;
+    $password = $input['password'] ?? null;
+    $isTeacher= isset($input['isTeacher']) ? (bool)$input['isTeacher'] : false;
+
+    if (!$login || !$password) {
+        jsonResponse(["error" => "Missing login or password"], 400);
+    }
+
+    // zahashuj hasło
+    $hash = password_hash($password, PASSWORD_DEFAULT);
+
+    try {
+        $stmt = $pdo->prepare("INSERT INTO users (login, password, isTeacher) VALUES (?, ?, ?)");
+        $stmt->execute([$login, $hash, $isTeacher]);
+        jsonResponse(["success" => true, "id" => (int)$pdo->lastInsertId()], 201);
+    } catch (Exception $e) {
+        jsonResponse(["error" => "Login already exists or DB error"], 400);
+    }
+}
+
+
 
 
 

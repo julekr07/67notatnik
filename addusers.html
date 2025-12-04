@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Dodaj użytkownika</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #000; color: #fff; }
+    .bg-secondary { background-color: #111 !important; }
+    .border-warning { border-color: #ff9800 !important; }
+    .text-warning { color: #ff9800 !important; }
+    .btn-warning { background-color: #ff9800 !important; border-color: #ff9800 !important; color: #000 !important; }
+    .form-control { background-color: #000 !important; border-color: #ff9800 !important; color: #fff !important; }
+  </style>
+</head>
+<body class="container-fluid py-5">
+  <div class="row">
+    <div class="col-12 col-md-3">
+      <div class="p-3 bg-secondary border border-warning rounded">
+        <h3 class="mb-3">Linki</h3>
+        <ul class="list-unstyled">
+          <li class="mb-2"><a href="login.html" class="text-warning text-decoration-none" id="logoutLink">Wyloguj się</a></li>
+          <li class="mb-2"><a href="tablica.html" class="text-warning text-decoration-none">Tablica</a></li>
+          <li class="mb-2"><a href="notatki.html" class="text-warning text-decoration-none">Notatki</a></li>
+          <li><a href="addusers.html" class="text-warning text-decoration-none">Dodaj użytkownika</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-9">
+      <h1 class="text-warning mb-4">👩‍🏫 Panel nauczyciela – Dodaj użytkownika</h1>
+      <div id="status" class="mb-3"></div>
+
+      <form id="addUserForm" class="p-3 border border-warning rounded bg-secondary">
+        <div class="mb-3">
+          <label class="form-label text-warning">Login</label>
+          <input id="loginInput" class="form-control border-warning" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label text-warning">Hasło</label>
+          <input id="passwordInput" type="password" class="form-control border-warning" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label text-warning">Rola</label>
+          <select id="roleSelect" class="form-control border-warning">
+            <option value="false">Uczeń</option>
+            <option value="true">Nauczyciel</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-warning">➕ Dodaj użytkownika</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById("addUserForm");
+    const statusBox = document.getElementById("status");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const login = document.getElementById("loginInput").value.trim();
+      const password = document.getElementById("passwordInput").value.trim();
+      const isTeacher = document.getElementById("roleSelect").value === "true";
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        statusBox.innerHTML = `<div class="alert alert-danger">Brak tokenu – zaloguj się!</div>`;
+        return;
+      }
+
+      const res = await fetch("http://10.103.8.116/67notatnik/api.php/addusers", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ login, password, isTeacher })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        statusBox.innerHTML = `<div class="alert alert-success">Dodano użytkownika (ID: ${data.id})</div>`;
+        form.reset();
+      } else {
+        statusBox.innerHTML = `<div class="alert alert-danger">${data.error || "Błąd dodawania użytkownika"}</div>`;
+      }
+    });
+
+    document.getElementById("logoutLink").addEventListener("click", () => {
+      localStorage.removeItem("token");
+      localStorage.removeItem("userid");
+      localStorage.removeItem("isTeacher");
+    });
+
+    // ukryj formularz jeśli nie nauczyciel
+    if (localStorage.getItem("isTeacher") == 0) {
+      document.getElementById("addUserForm").style.display = "none";
+      statusBox.innerHTML = `<div class="alert alert-danger">Tylko nauczyciel ma dostęp do tego panelu</div>`;
+    }
+  </script>
+</body>
+</html>
