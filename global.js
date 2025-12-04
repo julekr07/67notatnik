@@ -72,6 +72,7 @@ async function apiLoadMessages() {
     body: JSON.stringify({ read: true })
   });
   const text = await res.text();
+  console.log(text)
   try {
     return JSON.parse(text);
   } catch {

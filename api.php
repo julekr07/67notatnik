@@ -202,10 +202,6 @@ if ($endpoint === "board") {
     jsonResponse(["error" => "Invalid payload"], 400);
 }
 
-
-// ——— Nieznany endpoint ———
-jsonResponse(["error" => "Unknown endpoint"], 404);
-// ——— MESSAGES (chat) ——-
 if ($endpoint === "messages") {
     $input = getJsonInput();
 
@@ -232,5 +228,11 @@ if ($endpoint === "messages") {
     jsonResponse(["error" => "Invalid payload"], 400);
 }
 
+
+
+
+// ——— Nieznany endpoint ———
+jsonResponse(["error" => "Unknown endpoint"], 404);
+// ——— MESSAGES (chat) ——-
 
 
