@@ -176,10 +176,6 @@ if ($endpoint === "notes") {
     jsonResponse(["error" => "Invalid payload"], 400);
 }
 
-// ——— Nieznany endpoint ———
-jsonResponse(["error" => "Unknown endpoint"], 404);
-
-
 if ($endpoint === "board") {
     $input = getJsonInput();
 
@@ -205,3 +201,9 @@ if ($endpoint === "board") {
 
     jsonResponse(["error" => "Invalid payload"], 400);
 }
+
+
+// ——— Nieznany endpoint ———
+jsonResponse(["error" => "Unknown endpoint"], 404);
+
+
