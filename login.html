@@ -72,10 +72,11 @@
                 });
     
                 const data = await response.json();
-    
+                console.log(data)
                 if (response.ok) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('userid', data.userid);
+                    localStorage.setItem('isTeacher', data.isTeacher)
                     localStorage.setItem('username', data.login); // backend zwraca login
                     result.innerText = "✅ Zalogowano pomyślnie!";
                     result.style.color = "#0f0";
