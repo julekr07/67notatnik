@@ -11,34 +11,73 @@
     .text-warning { color: #ff9800 !important; }
     .btn-warning { background-color: #ff9800 !important; border-color: #ff9800 !important; color: #000 !important; }
     .form-control { background-color: #000 !important; border-color: #ff9800 !important; color: #fff !important; }
+
+    .sidebar {
+      min-height: 100vh;
+      background-color: #111;
+      border-right: 1px solid #ff9800;
+      padding: 20px;
+    }
+    .sidebar a {
+      display: block;
+      color: #ff9800;
+      text-decoration: none;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    .sidebar a:hover {
+      color: #fff;
+    }
+
+    #usernameDisplay {
+      font-size: 16px;
+      color: #0f0;
+      margin-bottom: 10px;
+    }
+    .sidebar a {
+  display: block;
+  color: #00bfff; /* jasny niebieski */
+  text-decoration: none;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.sidebar a:hover {
+  color: #fff; /* biały po najechaniu */
+}
+
   </style>
 </head>
-<body class="container-fluid py-5">
-  <div class="row">
-    <div class="col-12 col-md-3">
-      <div class="p-3 bg-secondary border border-warning rounded">
-        <h3 class="mb-3">Linki</h3>
-        <ul class="list-unstyled">
-          <li class="mb-2"><a href="login.html" class="text-warning text-decoration-none" id="logoutLink">Wyloguj się</a></li>
-          <li class="mb-2"><a href="tablica.html" class="text-warning text-decoration-none">Tablica</a></li>
-          <li><a href="notatki.html" class="text-warning text-decoration-none">Notatki</a></li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="col-12 col-md-9">
-      <h1 class="text-warning mb-4">📋 Tablica nauczyciela</h1>
-      <div id="status" class="mb-3"></div>
-
-      <!-- Formularz edycji tablicy (tylko dla nauczyciela) -->
-      <div id="boardEditor" class="mb-3" style="display:none;">
-        <textarea id="boardInput" class="form-control border-warning" rows="4" placeholder="Treść tablicy..."></textarea>
-        <button id="saveBoardBtn" class="btn btn-warning mt-2">💾 Zapisz tablicę</button>
+<body>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Lewa kolumna z odnośnikami -->
+      <div class="col-md-2 sidebar">
+        <h4 class="text-warning">Menu</h4>
+        <a href="login.html" id="logoutLink">Logowanie</a>
+        <a href="tablica.html">Tablica</a>
+        <a href="notatki.html">Notatki</a>
+        <a href="chat.html">Chat</a>
       </div>
 
-      <!-- Wyświetlanie tablicy -->
-      <h3 class="text-warning mt-5">Aktualna treść tablicy:</h3>
-      <div id="boardContent" class="p-3 border border-warning rounded bg-secondary"></div>
+      <!-- Prawa kolumna z tablicą -->
+      <div class="col-md-10 py-4">
+        <h1 class="text-warning mb-2">Tablica nauczyciela</h1>
+        <!-- Nazwa użytkownika -->
+        <div id="usernameDisplay"></div>
+
+        <div id="status" class="mb-3"></div>
+
+        <!-- Formularz edycji tablicy (tylko dla nauczyciela) -->
+        <div id="boardEditor" class="mb-3" style="display:none;">
+          <textarea id="boardInput" class="form-control border-warning" rows="4" placeholder="Treść tablicy..."></textarea>
+          <button id="saveBoardBtn" class="btn btn-warning mt-2">Zapisz tablicę</button>
+        </div>
+
+        <!-- Wyświetlanie tablicy -->
+        <h3 class="text-warning mt-5">Aktualna treść tablicy:</h3>
+        <div id="boardContent" class="p-3 border border-warning rounded bg-secondary"></div>
+      </div>
     </div>
   </div>
 
@@ -49,6 +88,11 @@
     const boardInput = document.getElementById("boardInput");
     const saveBoardBtn = document.getElementById("saveBoardBtn");
     const boardEditor = document.getElementById("boardEditor");
+    const usernameDisplay = document.getElementById("usernameDisplay");
+
+    // Wyświetlenie nazwy zalogowanego użytkownika
+    const username = localStorage.getItem("username") || "Nieznany użytkownik";
+    usernameDisplay.textContent = "Zalogowany jako: " + username;
 
     async function loadBoard() {
       const token = localStorage.getItem("token");
@@ -90,6 +134,8 @@
     document.getElementById("logoutLink").addEventListener("click", () => {
       localStorage.removeItem("token");
       localStorage.removeItem("userid");
+      localStorage.removeItem("username");
+      localStorage.removeItem("isTeacher");
     });
 
     // Pokazuj edytor tylko dla nauczyciela

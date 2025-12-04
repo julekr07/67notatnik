@@ -10,15 +10,65 @@
     #chatBox { height:400px; overflow-y:auto; border:1px solid #ff9800; padding:10px; }
     .msg { margin:5px 0; }
     .user { color:#ff9800; font-weight:bold; }
+    .sidebar {
+      min-height: 100vh;
+      background-color: #111;
+      border-right: 1px solid #ff9800;
+      padding: 20px;
+    }
+    .sidebar a {
+      display: block;
+      color: #ff9800;
+      text-decoration: none;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    .sidebar a:hover {
+      color: #fff;
+    }
+    #usernameDisplay {
+      font-size: 18px;
+      margin-bottom: 15px;
+      color: #0f0;
+    }
+    .sidebar a {
+  display: block;
+  color: #00bfff; /* jasny niebieski */
+  text-decoration: none;
+  margin: 10px 0;
+  font-weight: bold;
+}
+
+.sidebar a:hover {
+  color: #fff; /* biały po najechaniu */
+}
+
   </style>
 </head>
 <body>
-  <div class="container py-4">
-    <h1 class="text-warning">Chat</h1>
-    <div id="chatBox"></div>
-    <div class="input-group mt-3">
-      <input id="messageInput" class="form-control" placeholder="Napisz wiadomość...">
-      <button id="sendBtn" class="btn btn-warning">Wyślij</button>
+  <div class="container-fluid">
+    <div class="row">
+      <!-- Lewa kolumna z odnośnikami -->
+      <div class="col-md-2 sidebar">
+        <h4 class="text-warning">Menu</h4>
+        <a href="login.html">Logowanie</a>
+        <a href="tablica.html">Tablica</a>
+        <a href="notatki.html">Notatki</a>
+        <a href="chat.html">Chat</a>
+      </div>
+
+      <!-- Prawa kolumna z chatem -->
+      <div class="col-md-10 py-4">
+        <h1 class="text-warning">Chat</h1>
+        <!-- Wyświetlenie nazwy użytkownika -->
+        <div id="usernameDisplay"></div>
+
+        <div id="chatBox"></div>
+        <div class="input-group mt-3">
+          <input id="messageInput" class="form-control" placeholder="Napisz wiadomość...">
+          <button id="sendBtn" class="btn btn-warning">Wyślij</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -26,16 +76,25 @@
     const chatBox = document.getElementById("chatBox");
     const input = document.getElementById("messageInput");
     const sendBtn = document.getElementById("sendBtn");
+    const usernameDisplay = document.getElementById("usernameDisplay");
+
+    // Pobierz nazwę użytkownika z localStorage i pokaż nad chatem
+    const username = localStorage.getItem("username") || "Nieznany użytkownik";
+    usernameDisplay.textContent = "Zalogowany jako: " + username;
 
     async function loadMessages() {
       const data = await apiLoadMessages();
       chatBox.innerHTML = "";
-      data.forEach(msg => {
-        const div = document.createElement("div");
-        div.className = "msg";
-        div.innerHTML = `<span class="user">${msg.login}:</span> ${msg.content}`;
-        chatBox.appendChild(div);
-      });
+      if (Array.isArray(data)) {
+        data.forEach(msg => {
+          const div = document.createElement("div");
+          div.className = "msg";
+          div.innerHTML = `<span class="user">${msg.login}:</span> ${msg.content}`;
+          chatBox.appendChild(div);
+        });
+      } else {
+        chatBox.innerHTML = `<div class="text-warning">Nie udało się pobrać wiadomości.</div>`;
+      }
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
