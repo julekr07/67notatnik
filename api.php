@@ -205,5 +205,32 @@ if ($endpoint === "board") {
 
 // ——— Nieznany endpoint ———
 jsonResponse(["error" => "Unknown endpoint"], 404);
+// ——— MESSAGES (chat) ——-
+if ($endpoint === "messages") {
+    $input = getJsonInput();
+
+    // Odczyt historii
+    if (isset($input['read']) && $input['read'] === true) {
+        $stmt = $pdo->query("SELECT m.id, m.userId, u.login, m.content, m.created_at 
+                             FROM messages m 
+                             JOIN users u ON u.id = m.userId 
+                             ORDER BY m.created_at ASC");
+        jsonResponse($stmt->fetchAll(PDO::FETCH_ASSOC));
+    }
+
+    // Dodanie wiadomości
+    if (isset($input['content'])) {
+        $msg = trim($input['content']);
+        if (!$msg) jsonResponse(["error" => "Missing content"], 400);
+
+        $stmt = $pdo->prepare("INSERT INTO messages (userId, content) VALUES (?, ?)");
+        $stmt->execute([$authUserId, $msg]);
+
+        jsonResponse(["success" => true, "id" => (int)$pdo->lastInsertId()], 201);
+    }
+
+    jsonResponse(["error" => "Invalid payload"], 400);
+}
+
 
 
